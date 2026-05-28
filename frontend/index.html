@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Система учета посещаемости</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+  <header class="header">
+    <div class="header-container">
+      <div class="header-brand">
+        <div class="header-logo">ИС</div>
+        <h1 class="header-title">Система учета посещаемости</h1>
+      </div>
+      <div class="header-controls">
+        <button class="theme-toggle" id="theme-toggle">🌙 Темная тема</button>
+        <div id="nav" class="user-menu" style="display:none;">
+          <div class="user-avatar" id="user-avatar">A</div>
+          <div class="user-info">
+            <div class="user-name" id="user-name">Имя</div>
+            <div class="user-role" id="user-role">Роль</div>
+          </div>
+          <button id="logout-btn" class="btn-logout">Выйти</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-container">
+    <!-- АВТОРИЗАЦИЯ -->
+    <section id="auth-section" class="auth-wrapper">
+      <div class="auth-card">
+        <div class="auth-header">
+          <h2 id="auth-title">Вход в систему</h2>
+          <p id="auth-subtitle">Авторизуйтесь для работы</p>
+        </div>
+        <div class="auth-body">
+          <form id="auth-form">
+            <div class="form-group">
+              <label class="form-label">Email</label>
+              <input type="email" id="email" class="form-input" placeholder="test@student.ru" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Пароль</label>
+              <input type="password" id="password" class="form-input" placeholder="••••••••" required minlength="6">
+            </div>
+            <div id="register-fields" style="display:none;">
+              <div class="form-group">
+                <label class="form-label">ФИО</label>
+                <input type="text" id="full_name" class="form-input" placeholder="Иванов Иван Иванович">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Роль</label>
+                <select id="role" class="form-select">
+                  <option value="student">Студент</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Группа</label>
+                <input type="text" id="group_name" class="form-input" placeholder="ЭФБО-14-24">
+              </div>
+            </div>
+            <button type="submit" id="auth-btn" class="btn btn-primary btn-full">Войти</button>
+            <div class="auth-footer">
+              <span class="auth-toggle" id="toggle-auth">Нет аккаунта? Зарегистрироваться</span>
+              <br>
+              <span class="auth-toggle" id="forgot-password-link">Забыли пароль?</span>
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- DASHBOARD -->
+    <section id="dashboard" class="dashboard" style="display:none;">
+      <aside class="sidebar">
+        <div class="sidebar-header">
+          <div class="sidebar-avatar" id="sidebar-avatar">A</div>
+          <div class="sidebar-user-info">
+            <div class="sidebar-user-name" id="sidebar-user-name">Имя</div>
+            <div class="sidebar-user-role" id="sidebar-user-role">Роль</div>
+          </div>
+        </div>
+        <nav class="sidebar-nav"></nav>
+      </aside>
+
+      <div class="content-wrapper">
+        <!-- Личный кабинет -->
+        <div id="profile-section" class="content-section active">
+          <div class="section-header"><h2>Личный кабинет</h2></div>
+          <div class="card">
+            <div class="card-body">
+              <div class="info-row"><span class="info-label">ФИО:</span><span id="profile-name" class="info-value">-</span></div>
+              <div class="info-row"><span class="info-label">Email:</span><span id="profile-email" class="info-value">-</span></div>
+              <div class="info-row"><span class="info-label">Группа:</span><span id="profile-group" class="info-value">-</span></div>
+              <div class="info-row"><span class="info-label">Роль:</span><span id="profile-role" class="info-value">-</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Расписание -->
+        <div id="schedule-section" class="content-section">
+          <div class="section-header">
+            <h2>Расписание</h2>
+            <button id="add-schedule-btn" class="btn btn-primary" style="display:none;">+ Добавить занятие</button>
+          </div>
+          <div class="card">
+            <div class="card-body">
+              <div id="schedule-content">
+                <div class="loading"><div class="spinner"></div><p>Загрузка...</p></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Отметить (для преподавателей) -->
+        <div id="mark-attendance-section" class="content-section">
+          <div class="section-header"><h2>Отметить посещаемость</h2></div>
+          <div class="card">
+            <div class="card-body">
+              <form id="mark-attendance-form">
+                <div class="form-group">
+                  <label class="form-label">Студент</label>
+                  <select id="student-select" class="form-select" required>
+                    <option value="">Выберите студента</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Дата</label>
+                  <input type="date" id="attendance-date" class="form-input" required>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Статус</label>
+                  <select id="status-select" class="form-select">
+                    <option value="present">Присутствует</option>
+                    <option value="absent">Отсутствует</option>
+                    <option value="late">Опоздал</option>
+                    <option value="sick">Болезнь</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Примечание</label>
+                  <textarea id="attendance-note" class="form-input" rows="3"></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary btn-full">Отметить</button>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        <!-- Журнал -->
+        <div id="attendance-section" class="content-section">
+          <div class="section-header"><h2>Посещаемость</h2></div>
+          <div class="card">
+            <div class="card-body">
+              <div class="filter-bar">
+                <label class="form-label">Группа:</label>
+                <select id="group-filter" class="form-select">
+                  <option value="">Все</option>
+                </select>
+              </div>
+              <div class="table-wrapper">
+                <table class="data-table">
+                  <thead>
+                    <tr><th>Дата</th><th>Студент</th><th>Группа</th><th>Статус</th><th>Примечание</th></tr>
+                  </thead>
+                  <tbody id="attendance-body"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Управление (Только Админ) -->
+        <div id="admin-section" class="content-section">
+          <div class="section-header"><h2>Управление пользователями</h2></div>
+          <div class="card">
+            <div class="card-body">
+              <form id="create-user-form">
+                <div class="form-group">
+                  <label>Email</label>
+                  <input type="email" id="new-email" class="form-input" required>
+                </div>
+                <div class="form-group">
+                  <label>Пароль</label>
+                  <input type="password" id="new-password" class="form-input" required minlength="6">
+                </div>
+                <div class="form-group">
+                  <label>ФИО</label>
+                  <input type="text" id="new-name" class="form-input" required>
+                </div>
+                <div class="form-group">
+                  <label>Роль</label>
+                  <select id="new-role" class="form-select">
+                    <option value="student">Студент</option>
+                    <option value="teacher">Преподаватель</option>
+                    <option value="admin">Администратор</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Группа</label>
+                  <input type="text" id="new-group" class="form-input">
+                </div>
+                <button type="submit" class="btn btn-primary btn-full">Создать</button>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        <!-- Отчеты + Графики + Рейтинг -->
+        <div id="reports-section" class="content-section">
+          <div class="section-header">
+            <h2>Отчеты и Аналитика</h2>
+            <div style="margin-top:1rem;display:flex;gap:0.5rem;flex-wrap:wrap;">
+              <button onclick="exportReport('excel')" class="btn btn-secondary">📥 Excel</button>
+              <button onclick="exportReport('pdf')" class="btn btn-secondary">📄 PDF</button>
+              <button onclick="recalcRating()" class="btn btn-primary" id="recalc-btn" style="display:none;">🔄 Пересчитать рейтинг</button>
+            </div>
+            <div class="filter-bar">
+              <label>Группа:</label>
+              <select id="report-group-filter" class="form-select">
+                <option value="">Все</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="card">
+            <div class="card-body" id="reports-content">
+              <div class="empty-state"><p>Загрузка данных...</p></div>
+            </div>
+          </div>
+          
+          <!-- Графики -->
+          <div class="stats-row" style="margin-top: 2rem;">
+            <div class="card" style="min-height: 300px;">
+              <div class="card-header"><h3>Статусы посещений</h3></div>
+              <div class="card-body">
+                <canvas id="statusChart"></canvas>
+              </div>
+            </div>
+            <div class="card" style="min-height: 300px;">
+              <div class="card-header"><h3>Активность групп</h3></div>
+              <div class="card-body">
+                <canvas id="groupChart"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- Рейтинг -->
+          <div class="card" style="margin-top: 2rem;">
+            <div class="card-header"><h3>🏆 Рейтинг студентов</h3></div>
+            <div class="card-body">
+              <div class="table-wrapper">
+                <table class="data-table">
+                  <thead>
+                    <tr><th>Место</th><th>ФИО</th><th>Группа</th><th>Баллы</th></tr>
+                  </thead>
+                  <tbody id="rating-body"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Уведомления -->
+        <div id="notifications-section" class="content-section">
+          <div class="section-header"><h2>Уведомления</h2></div>
+          <div class="card">
+            <div class="card-body" id="notifications-content"></div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+  </main>
+
+  <!-- МОДАЛКИ -->
+  <div id="schedule-modal" class="modal" style="display:none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Добавить занятие</h3>
+        <button class="close-modal">&times;</button>
+      </div>
+      <form id="schedule-form">
+        <div class="form-group">
+          <label>Группа</label>
+          <input type="text" id="sched-group" class="form-input" placeholder="ЭФБО-14-24" required>
+        </div>
+        <div class="form-group">
+          <label>Предмет</label>
+          <input type="text" id="sched-subject" class="form-input" placeholder="Базы данных" required>
+        </div>
+        <div class="form-group">
+          <label>День</label>
+          <select id="sched-day" class="form-select" required>
+            <option value="">Выберите</option>
+            <option value="Понедельник">Понедельник</option>
+            <option value="Вторник">Вторник</option>
+            <option value="Среда">Среда</option>
+            <option value="Четверг">Четверг</option>
+            <option value="Пятница">Пятница</option>
+            <option value="Суббота">Суббота</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Время</label>
+          <input type="text" id="sched-time" class="form-input" placeholder="09:00-10:30" required>
+        </div>
+        <div class="form-group">
+          <label>Аудитория</label>
+          <input type="text" id="sched-room" class="form-input" placeholder="301">
+        </div>
+        <button type="submit" class="btn btn-primary btn-full">Добавить</button>
+      </form>
+    </div>
+  </div>
+
+  <div id="attendance-modal" class="modal" style="display:none;">
+    <div class="modal-content modal-large">
+      <div class="modal-header">
+        <h3 id="attendance-modal-title">Посещаемость</h3>
+        <button class="close-modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="attendance-info" id="attendance-info"></div>
+        <div class="table-wrapper">
+          <table class="data-table">
+            <thead>
+              <tr><th>Студент</th><th>Группа</th><th>Посещено</th><th>Пропуски</th><th>Статус</th><th>Примечание</th></tr>
+            </thead>
+            <tbody id="attendance-modal-body"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeAttendanceModal()">Отмена</button>
+        <button class="btn btn-primary" onclick="saveAttendanceModal()">Сохранить</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="forgot-modal" class="modal" style="display:none;">
+    <div class="modal-content">
+      <h3>Восстановление пароля</h3>
+      <input type="email" id="reset-email" class="form-input" placeholder="Email" style="margin:1rem 0;">
+      <button onclick="requestReset()" class="btn btn-primary btn-full">Отправить ссылку</button>
+      <button onclick="closeForgot()" class="btn btn-secondary btn-full" style="margin-top:0.5rem;">Отмена</button>
+    </div>
+  </div>
+
+  <div id="alert-container"></div>
+  <script src="app.js"></script>
+</body>
+</html>
