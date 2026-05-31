@@ -307,4 +307,3 @@ npm test
 - Email: baksarovbogdan@yandex.ru
 
 **Дата последнего обновления:** Май 2026
-```
