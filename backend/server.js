@@ -21,7 +21,7 @@ app.use(xss());
 app.use(hpp());
 app.use(compression());
 
-// Rate limiting (увеличенные лимиты для разработки)
+// Rate limiting
 const limiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 1000 });
 const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 50 });
 app.use(limiter);
@@ -41,8 +41,8 @@ app.use('/api/ratings', require('./routes/ratings'));
 
 // Health check
 app.get('/api/health', (req, res) => {
-  res.json({ 
-    status: 'ok', 
+  res.json({
+    status: 'ok',
     timestamp: new Date().toISOString(),
     uptime: process.uptime()
   });
@@ -54,10 +54,15 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Внутренняя ошибка сервера' });
 });
 
-// Запуск сервера
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`\n✅ Сервер запущен на порту ${PORT}`);
-  console.log(`🔗 http://localhost:${PORT}/api/health`);
-  console.log(`📊 База данных: ${process.env.DB_NAME}@${process.env.DB_HOST}:${process.env.DB_PORT}\n`);
-});
+// ✅ ЭКСПОРТИРУЕМ ПРИЛОЖЕНИЕ (для тестов)
+module.exports = app;
+
+// ✅ ЗАПУСКАЕМ СЕРВЕР ТОЛЬКО ПРИ ПРЯМОМ ЗАПУСКЕ ФАЙЛА
+if (require.main === module) {
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => {
+    console.log(`\n✅ Сервер запущен на порту ${PORT}`);
+    console.log(`🔗 http://localhost:${PORT}/api/health`);
+    console.log(`📊 База данных: ${process.env.DB_NAME}@${process.env.DB_HOST}:${process.env.DB_PORT}\n`);
+  });
+}
